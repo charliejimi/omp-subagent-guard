@@ -1,0 +1,18 @@
+# Load with: omp --config /path/to/overlay.yml ...
+# omp applies --config over your global and project settings, so a project cannot loosen these.
+# They follow every subagent even when the guard is not loaded: a subagent runs in yolo mode and has
+# no UI, so a `prompt` rule refuses its call at once, while the main agent asks you.
+tools:
+  approval:
+    bash: prompt
+    eval: prompt
+    # omp gives hub to every subagent; hub start launches any program.
+    hub: prompt
+task:
+  # Only the main agent spawns; a subagent gets no task tool.
+  maxRecursionDepth: 1
+  # Hard limit for each subagent: 15 minutes.
+  maxRuntimeMs: 900000
+  isolation:
+    # Keep an isolated subagent's patch for review instead of applying it to your checkout.
+    apply: false

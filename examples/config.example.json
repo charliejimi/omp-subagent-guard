@@ -1,0 +1,11 @@
+{
+	"owner": "alice",
+	"maxSpawns": 3,
+	"agents": {
+		"scoped-worker": {
+			"writeScope": ["notes.txt", "src/**", "test/**"]
+		}
+	},
+	"protect": ["secrets/**", "deploy/**"],
+	"askTimeoutMs": 20000
+}
