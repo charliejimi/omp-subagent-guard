@@ -20,6 +20,23 @@ describe("writeTargets", () => {
 		expect(writeTargets("ast_edit", { paths: ["src/a.ts;src/b.ts"] })).toEqual(["src/a.ts", "src/b.ts"]);
 		expect(writeTargets("read", { path: ".env" })).toBeUndefined();
 	});
+
+	it("names every header of a multi-file hashline patch and each hashline MV destination", () => {
+		const multi = "*** Begin Patch\n[src/a.ts#1A2B]\nPUT 1.=1:\n+x\n[test/b.ts#3C4D]\nPUT 1.=1:\n+y\n*** End Patch\n";
+		expect(writeTargets("edit", { input: multi, paths: ["src/a.ts", "test/b.ts"] })).toEqual(["src/a.ts", "test/b.ts"]);
+		const move = "*** Begin Patch\n[src/a.ts#1A2B]\nPUT 1.=1:\n+#!/bin/sh\nMV .git/hooks/pre-commit\n*** End Patch\n";
+		expect(writeTargets("edit", { input: move, path: "src/a.ts", paths: ["src/a.ts"] })).toEqual(["src/a.ts", ".git/hooks/pre-commit"]);
+	});
+
+	it("resolves targets spelled the way omp's write and edit tools accept them", () => {
+		const home = os.homedir();
+		expect(writeTargets("write", { path: "[.env]" })).toEqual([".env"]);
+		expect(writeTargets("write", { path: "[.git/config#1A2B]" })).toEqual([".git/config"]);
+		expect(writeTargets("write", { path: ":./.envrc" })).toEqual(["./.envrc"]);
+		expect(writeTargets("write", { path: "@~/.omp/agent/config.yml" })).toEqual([path.join(home, ".omp", "agent", "config.yml")]);
+		expect(writeTargets("write", { path: "~.omp/agent/config.yml" })).toEqual([path.join(home, ".omp", "agent", "config.yml")]);
+		expect(writeTargets("write", { path: "@my-file.txt" })).toEqual(["@my-file.txt"]);
+	});
 });
 
 describe("isProtected", () => {
@@ -51,6 +68,17 @@ describe("isProtected", () => {
 		expect(isProtected("notes.txt", p)).toBe(false);
 		expect(isProtected(".omp/agents/x.md", p)).toBe(true);
 		expect(isProtected("~/.omp/agent/config.yml", p)).toBe(true);
+	});
+
+	it("protects what an omp-spelled target or a hashline MV destination resolves to", () => {
+		const p = placesFor(cwd);
+		for (const raw of ["[.env]", "[.git/config#1A2B]", ":./.envrc", "@~/.omp/agent/config.yml"]) {
+			const [target] = writeTargets("write", { path: raw })!;
+			expect({ raw, protected: isProtected(target!, p) }).toEqual({ raw, protected: true });
+		}
+		const move = "*** Begin Patch\n[src/a.ts#1A2B]\nMV .git/hooks/pre-commit\n*** End Patch\n";
+		const targets = writeTargets("edit", { input: move, path: "src/a.ts", paths: ["src/a.ts"] })!;
+		expect(targets.some(target => isProtected(target, p))).toBe(true);
 	});
 
 	it("follows symlinks out of the project into a protected place", () => {

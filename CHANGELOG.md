@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.1] - 2026-10-14
+
+### Fixed
+
+- A subagent's hashline `edit` is checked for every file it writes: each file header of a multi-file patch and each `MV` destination. Moving an in-scope file onto a protected path (`.git/`, `.omp/`, `~/.omp/`) is refused, and moving it outside the write scope asks the owner. A multi-file hashline edit inside the write scope is no longer refused as unreadable.
+- Write targets spelled the way omp's tools accept them (`[path]`, `[path#TAG]`, a leading `:` or `@`, `~name`) are resolved before the protected-path and write-scope checks, so `write [.env]` is refused like `write .env`.
+- The main session's protected-path check covers multi-file hashline edits too.
+
+### Changed
+
+- A refusal names a target written as `~/…` by its absolute path.
+
 ## [0.1.0] - 2026-10-12
 
 ### Added

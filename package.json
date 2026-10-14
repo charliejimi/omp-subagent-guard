@@ -1,6 +1,6 @@
 {
 	"name": "omp-subagent-guard",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"private": true,
 	"description": "An oh-my-pi (omp) extension that keeps your limits on the work an agent delegates: it gates every task spawn (named owner, allowed and pinned agent definitions, spawn cap, isolation reachability), re-checks every subagent tool call (tool allowlist, protected paths, per-agent write scope with a prompt forwarded to the owner), and writes an audit log that links each spawn to what its subagent did.",
 	"type": "module",
